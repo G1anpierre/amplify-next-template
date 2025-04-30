@@ -48,9 +48,8 @@ async function App() {
       console.error("Error updating todo:", error);
     }
   }
-
-  const completedTodos = todos.filter(todo => todo.isDone);
-  const pendingTodos = todos.filter(todo => !todo.isDone);
+  const completedTodos = todos.filter(todo => todo?.isDone);
+  const pendingTodos = todos.filter(todo => !todo?.isDone);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-8 px-4">
