@@ -5,7 +5,7 @@ import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 
 // Configure Amplify on the server
-Amplify.configure(outputs, { ssr: true });
+// Amplify.configure(outputs, { ssr: true });
 
 // Generate the client
 const client = generateClient<Schema>();
