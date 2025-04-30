@@ -24,7 +24,8 @@ export async function getTodos() {
 export async function createTodo(content: string) {
   try {
     const { data: newTodo } = await client.models.Todo.create({
-      content
+      content,
+      isDone: false,
     });
     return newTodo;
   } catch (error) {
