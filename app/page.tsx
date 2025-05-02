@@ -1,60 +1,39 @@
 import { revalidatePath } from "next/cache";
 import { AuthGetCurrentUserServer, cookiesClient } from "@/utils/amplify-utils";
 import Logout from "@/components/Logout";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import TodoForm from "@/components/TodoForm";
 import TodoItem from "@/components/TodoItem";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { addTodo, deleteTodo, toggleTodo } from "./actions/getData";
+import FixTodosButton from "@/components/FixTodosButton";
 
 async function App() {
   const user = await AuthGetCurrentUserServer();
   const { data: todos } = await cookiesClient.models.Todo.list();
 
-  async function addTodo(data: FormData) {
-    "use server";
-    const content = data.get("content") as string;
-    if (!content.trim()) return;
-    
-    try {
-      await cookiesClient.models.Todo.create({
-        content,
-        isDone: false,
-      });
-      revalidatePath("/");
-    } catch (error) {
-      console.error("Error adding todo:", error);
-    }
-  }
+  // Ensure all todos have isDone property, even if null/undefined from database
+  const processedTodos = todos.map((todo) => ({
+    ...todo,
+    isDone:
+      todo.isDone === null || todo.isDone === undefined ? false : todo.isDone,
+  }));
 
-  async function deleteTodo(id: string) {
-    "use server";
-    try {
-      await cookiesClient.models.Todo.delete({ id });
-      revalidatePath("/");
-    } catch (error) {
-      console.error("Error deleting todo:", error);
-    }
-  }
-
-  async function toggleTodo(id: string, currentStatus: boolean) {
-    "use server";
-    try {
-      await cookiesClient.models.Todo.update({
-        id,
-        isDone: !currentStatus,
-      });
-      revalidatePath("/");
-    } catch (error) {
-      console.error("Error updating todo:", error);
-    }
-  }
-  const completedTodos = todos.filter(todo => todo?.isDone);
-  const pendingTodos = todos.filter(todo => !todo?.isDone);
+  const completedTodos = processedTodos.filter((todo) => todo.isDone === true);
+  const pendingTodos = processedTodos.filter((todo) => todo.isDone !== true);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-8 px-4">
       <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-between mb-4 items-center">
+          <FixTodosButton />
           <ModeToggle />
         </div>
         <Card className="shadow-xl border-primary/5 overflow-hidden backdrop-blur-sm bg-background/80">
@@ -78,11 +57,11 @@ async function App() {
               )}
             </div>
           </CardHeader>
-          
+
           <CardContent className="pb-8 space-y-8">
             <TodoForm addTodoAction={addTodo} />
 
-            {todos && todos.length > 0 ? (
+            {processedTodos && processedTodos.length > 0 ? (
               <div className="space-y-8">
                 {pendingTodos.length > 0 && (
                   <div className="space-y-4">
@@ -94,7 +73,7 @@ async function App() {
                         <TodoItem
                           key={todo.id}
                           id={todo.id}
-                          content={todo.content || ''}
+                          content={todo.content || ""}
                           isDone={todo.isDone}
                           toggleTodoAction={toggleTodo}
                           deleteTodoAction={deleteTodo}
@@ -114,7 +93,7 @@ async function App() {
                         <TodoItem
                           key={todo.id}
                           id={todo.id}
-                          content={todo.content || ''}
+                          content={todo.content || ""}
                           isDone={todo.isDone}
                           toggleTodoAction={toggleTodo}
                           deleteTodoAction={deleteTodo}
@@ -131,12 +110,12 @@ async function App() {
                 </div>
                 <h3 className="text-xl font-medium mb-2">All caught up!</h3>
                 <p className="text-muted-foreground">
-                  You don't have any tasks yet. Add your first task above.
+                  You don&apos;t have any tasks yet. Add your first task above.
                 </p>
               </div>
             )}
           </CardContent>
-          
+
           <CardFooter className="flex justify-center border-t py-4 text-xs text-muted-foreground bg-secondary/10">
             Powered by AWS Amplify & Next.js
           </CardFooter>

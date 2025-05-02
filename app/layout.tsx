@@ -1,15 +1,12 @@
-"use client";
+
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Authenticator } from "@aws-amplify/ui-react";
-import "@aws-amplify/ui-react/styles.css";
-import { Amplify } from "aws-amplify";
-import amplifyconfig from "@/amplify_outputs.json";
-import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/ui/theme-provider";
 
-// Configure Amplify in the client side
-Amplify.configure(amplifyconfig);
+import "@aws-amplify/ui-react/styles.css";
+import { Toaster } from "@/components/ui/sonner";
+
+import Providers from "@/components/providers";
+
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,17 +30,10 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={`${inter.className} ${inter.variable} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Authenticator.Provider>
+        <Providers>
             {children}
             <Toaster position="bottom-right" closeButton />
-          </Authenticator.Provider>
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

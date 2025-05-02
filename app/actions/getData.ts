@@ -1,8 +1,12 @@
+"use server";
+
 
 import type { Schema } from "@/amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
+import { cookiesClient } from "@/utils/amplify-utils";
+import { revalidatePath } from "next/cache";
 
 // Configure Amplify on the server
 // Amplify.configure(outputs, { ssr: true });
@@ -34,12 +38,41 @@ export async function createTodo(content: string) {
   }
 }
 
+
+
+export async function addTodo(data: FormData) {
+
+  const content = data.get("content") as string;
+  if (!content.trim()) return;
+  
+  try {
+    await cookiesClient.models.Todo.create({
+      content,
+      isDone: false,
+    });
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Error adding todo:", error);
+  }
+}
+
 export async function deleteTodo(id: string) {
   try {
-    await client.models.Todo.delete({ id });
-    return true;
+    await cookiesClient.models.Todo.delete({ id });
+    revalidatePath("/");
   } catch (error) {
     console.error("Error deleting todo:", error);
-    throw error;
+  }
+}
+
+export async function toggleTodo(id: string, currentStatus: boolean) {
+  try {
+    await cookiesClient.models.Todo.update({
+      id,
+      isDone: !currentStatus,
+    });
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Error updating todo:", error);
   }
 }
